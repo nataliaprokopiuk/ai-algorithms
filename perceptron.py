@@ -69,5 +69,14 @@ def prepare_dataset():
 	return dataset, decisions
 
 class BCDataset(Dataset):
-	def __init__(self) -> None:
-		super().__init__()
+	def __init__(self, dataset, decisions):
+		self.input_data = torch.tensor(dataset, dtype=torch.float32)
+		self.decsions = torch.tensor(decisions, dtype=torch.float32)
+
+	def __len__(self):
+		return len(self.input_data)
+	
+	def __getitem__(self, index):
+		item_attributes = self.input_data[index]
+		item_decision = self.decsions[index]
+		return item_attributes, item_decision
