@@ -2,7 +2,6 @@ import pickle
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
-from torch.nn import Module
 
 def game_state_to_data_sample(game_state: dict, bounds, block_size):
 	snake_head = game_state["snake_body"][-1] # coordinates of the snake's head
