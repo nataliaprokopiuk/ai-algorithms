@@ -1,5 +1,7 @@
 import pickle
 import numpy as np
+import torch
+from torch.utils.data import Dataset, DataLoader
 
 def game_state_to_data_sample(game_state: dict, bounds, block_size):
 	snake_head = game_state["snake_body"][-1] # coordinates of the snake's head
@@ -51,11 +53,21 @@ def create_dataset(file):
 	block_size = data_file["block_size"]
 	# assign attributes to each state
 	for state in states:
-		# print(state)
-		# print(game_state_to_data_sample(state[0], bounds, block_size))
-		# print()
 		dataset = np.append(dataset, game_state_to_data_sample(state[0], bounds, block_size), axis=0)
 		decisions = np.append(decisions, [[state[1].value]], axis=0)
 
 	return dataset[1:], decisions[1:]
 
+def prepare_dataset():
+	# import datasets with attributes
+	dataset_1, decisions_1 = create_dataset(f"2024-05-18_19-38-16.pickle")
+	dataset_2, decisions_2 = create_dataset(f"2024-05-19_18-54-56.pickle")
+
+	dataset = np.vstack((dataset_1, dataset_2))
+	decisions = np.vstack((decisions_1, decisions_2))
+
+	return dataset, decisions
+
+class BCDataset(Dataset):
+	def __init__(self) -> None:
+		super().__init__()
