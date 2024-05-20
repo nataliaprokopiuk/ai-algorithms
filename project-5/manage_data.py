@@ -2,13 +2,14 @@ import pickle
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
+from sklearn.model_selection import train_test_split
 
 def game_state_to_data_sample(game_state: dict, bounds, block_size):
 	snake_head = game_state["snake_body"][-1] # coordinates of the snake's head
 	snake_tail = game_state["snake_body"][0:-1] # the rest of the snake's body
 	food = game_state["food"] # current food coordinates
 
-    # last move - attribute
+	# last move - attribute
 	LastMove = game_state["snake_direction"].value
 
 	# determine the coordinates of neighbour cells
@@ -23,7 +24,7 @@ def game_state_to_data_sample(game_state: dict, bounds, block_size):
 	FoodLeft = 1 if left_coordinates == food else 0
 	FoodRight = 1 if right_coordinates == food else 0
 
-    # check for food in each direction - attributes
+	# check for food in each direction - attributes
 	FoodDirUp = 1 if food[0] == snake_head[0] and food[1] < snake_head[1] else 0
 	FoodDirDown = 1 if food[0] == snake_head[0] and food[1] > snake_head[1] else 0
 	FoodDirLeft = 1 if food[0] < snake_head[0] and food[1] == snake_head[1] else 0
@@ -59,6 +60,8 @@ def create_dataset(file):
 	return dataset[1:], decisions[1:]
 
 def prepare_dataset():
+	train_split = 0.8
+
 	# import datasets with attributes
 	dataset_1, decisions_1 = create_dataset(f"2024-05-18_19-38-16.pickle")
 	dataset_2, decisions_2 = create_dataset(f"2024-05-19_18-54-56.pickle")
@@ -66,7 +69,19 @@ def prepare_dataset():
 	dataset = np.vstack((dataset_1, dataset_2))
 	decisions = np.vstack((decisions_1, decisions_2))
 
-	return dataset, decisions
+	train_data, temp_data, train_decisions, temp_decisions = train_test_split(
+		dataset, decisions, train_size=train_split, random_state=42)
+
+	# Split the temporary set into validation and test sets equally
+	val_data, test_data, val_decisions, test_decisions = train_test_split(
+		temp_data, temp_decisions, test_size=0.5, random_state=42)
+
+	# Create datasets
+	train_dataset = BCDataset(train_data, train_decisions)
+	val_dataset = BCDataset(val_data, val_decisions)
+	test_dataset = BCDataset(test_data, test_decisions)
+
+	return train_dataset, val_dataset, test_dataset
 
 class BCDataset(Dataset):
 	def __init__(self, dataset, decisions):
