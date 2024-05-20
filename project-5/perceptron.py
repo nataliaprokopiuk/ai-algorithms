@@ -1,9 +1,17 @@
 import torch
-import torch.nn as nn 
-import torch.optim as optim
+import torch.nn as nn
 from sklearn.metrics import classification_report
-from torchvision import datasets, transforms
-from manage_data import BCDataset, prepare_dataset
+import logging
+from torch.utils.tensorboard import SummaryWriter
+from torchmetrics import Accuracy
+
+# logger
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# TensorBoard
+writer = SummaryWriter()
+
 
 class MLP(nn.Module):
     def __init__(self, input_size, hidden_size, output_size, num_hidden_layers=30): 
@@ -27,54 +35,83 @@ class MLP(nn.Module):
             x = nn.functional.relu(x)
         x = self.output_layer(x)
         return x
-    
-# Instantiate the custom module 
-my_module = MLP(num_inputs=13, num_outputs=4, hidden_size=128) 
 
-# Define the loss function and optimizer 
-criterion = nn.CrossEntropyLoss() 
-optimizer = optim.SGD(my_module.parameters(), lr=0.01) 
+    def train_model(self, model, train_loader, val_loader, criterion, optimizer, num_epochs):
+        accuracy = Accuracy(task="multiclass", num_classes=4)
+        best_model_weights = None
+        best_val_accuracy = 0.0
 
-# Define the transformations for the dataset 
-transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.5,), (0.5,))]) 
+        for epoch in range(num_epochs):
+            model.train()
+            running_loss = 0.0
+            train_accuracy = 0.0
 
-# Load the MNIST dataset 
-train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform) 
-test_dataset = datasets.MNIST(root='./data', train=False, download=True, transform=transform) 
+            for inputs, targets in train_loader:
+                optimizer.zero_grad()
+                outputs = model(inputs)
+                loss = criterion(outputs, targets.long().squeeze())
+                loss.backward()
+                optimizer.step()
 
-# Define the data loader 
-train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=64, shuffle=True) 
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=64, shuffle=False) 
+                running_loss += loss.item()
+                train_accuracy += accuracy(outputs, targets.long().squeeze())
 
-# Train the model 
-for epoch in range(10): 
-    for i, (images, labels) in enumerate(train_loader): 
-        images = images.view(-1, 28*28) 
-        optimizer.zero_grad() 
-        output = my_module(images) 
-        loss = criterion(output, labels) 
-        loss.backward() 
-        optimizer.step() 
-    print('Epoch -->', epoch, '-->', loss.item()) 
+            epoch_loss = running_loss / len(train_loader)
+            epoch_accuracy = train_accuracy / len(train_loader)
 
-# Test the model 
-with torch.no_grad(): 
-    y_true = [] 
-    y_pred = [] 
-    correct = 0
-    total = 0
-    for images, labels in test_loader: 
-        images = images.view(-1, 28*28) 
-        output = my_module(images) 
-        _, predicted = torch.max(output.data, 1)  # Get the class with the highest score
-        total += labels.size(0) 
-        correct += (predicted == labels).sum().item()
-        y_true += labels.tolist() 
-        y_pred += predicted.tolist() 
+            logger.info(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {epoch_loss:.4f}, Accuracy: {epoch_accuracy:.4f}')
+            writer.add_scalar('Loss/train', epoch_loss, epoch)
+            writer.add_scalar('Accuracy/train', epoch_accuracy, epoch)
 
-    # Accuracy 
-    print('Accuracy: {} %'.format(100 * correct / total)) 
+            # Validation phase
+            model.eval()
+            val_loss = 0.0
+            val_accuracy = 0.0
 
-    # Classification Report 
-    report = classification_report(y_true, y_pred, digits=4) 
-    print(report)
+            with torch.no_grad():
+                for inputs, targets in val_loader:
+                    outputs = model(inputs)
+                    loss = criterion(outputs, targets.long().squeeze())
+                    val_loss += loss.item()
+                    val_accuracy += accuracy(outputs, targets.long().squeeze())
+
+            val_epoch_loss = val_loss / len(val_loader)
+            val_epoch_accuracy = val_accuracy / len(val_loader)
+
+            logger.info(
+                f'Epoch [{epoch + 1}/{num_epochs}], Val Loss: {val_epoch_loss:.4f}, Val Accuracy: {val_epoch_accuracy:.4f}')
+            writer.add_scalar('Loss/val', val_epoch_loss, epoch)
+            writer.add_scalar('Accuracy/val', val_epoch_accuracy, epoch)
+
+            # Save the model weights if validation accuracy improves
+            if val_epoch_accuracy > best_val_accuracy:
+                best_val_accuracy = val_epoch_accuracy
+                best_model_weights = self.state_dict()
+
+        writer.close()
+
+        # Save the best model weights to a file
+        torch.save(best_model_weights, 'best_model_weights.pth')
+
+# Test the model
+    def test_model(model, test_loader):
+        with torch.no_grad():
+            y_true = []
+            y_pred = []
+            correct = 0
+            total = 0
+            for inputs, labels in test_loader:
+                outputs = model(inputs)
+                _, predicted = torch.max(outputs.data, 1)  # Get the class with the highest score
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+                y_true += labels.tolist()
+                y_pred += predicted.tolist()
+
+                # Accuracy
+            accuracy = 100 * correct / total
+            logger.info('Test Accuracy: {} %'.format(accuracy))
+
+            # Classification Report
+            report = classification_report(y_true, y_pred, digits=4)
+            logger.info('\n' + report)
