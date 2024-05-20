@@ -1,4 +1,5 @@
 import torch
+from activation_func import ActivationFunc as act
 
 class Layer:
 	def __init__(self):
@@ -24,10 +25,10 @@ class DenseLayer(Layer):
 		self.velocity_b = torch.zeros_like(self.bias)
 
 		act_dict = {
-			'identity': (identity, identity_prime),
-			'relu': (relu, relu_prime),
-			'leaky_relu': (leaky_relu, leaky_relu_prime),
-			'sigmoid': (sigmoid, sigmoid_prime),
+			'identity': (act.identity, act.identity_prime),
+			'relu': (act.relu, act.relu_prime),
+			'leaky_relu': (act.leaky_relu, act.leaky_relu_prime),
+			'sigmoid': (act.sigmoid, act.sigmoid_prime),
 		}
 
 		if activation in act_dict.keys():
