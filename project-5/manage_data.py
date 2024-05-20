@@ -67,8 +67,8 @@ def prepare_dataset():
 	train_split = 0.8
 
 	# import datasets with attributes
-	dataset_1, decisions_1 = create_dataset(f"2024-05-18_19-38-16.pickle")
-	dataset_2, decisions_2 = create_dataset(f"2024-05-19_18-54-56.pickle")
+	dataset_1, decisions_1 = create_dataset(f"./2024-05-18_19-38-16.pickle")
+	dataset_2, decisions_2 = create_dataset(f"./2024-05-19_18-54-56.pickle")
 
 	dataset = np.vstack((dataset_1, dataset_2))
 	decisions = np.vstack((decisions_1, decisions_2))
@@ -90,7 +90,7 @@ def prepare_dataset():
 class BCDataset(Dataset):
 	def __init__(self, dataset, decisions):
 		self.input_data = torch.tensor(dataset, dtype=torch.float32)
-		self.decisions = torch.tensor(decisions, dtype=torch.float32)
+		self.decisions = torch.tensor(decisions, dtype=torch.long).squeeze()
 
 	def __len__(self):
 		return len(self.input_data)
