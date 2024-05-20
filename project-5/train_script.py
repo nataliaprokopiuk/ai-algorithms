@@ -7,7 +7,7 @@ from manage_data import prepare_dataset
 
 if __name__ == "__main__":
     # Instantiate the custom module 
-    module = MLP(num_inputs=13, num_outputs=4, hidden_size=128)
+    module = MLP(13, 128, 4)
 
     # Define the loss function and optimizer 
     criterion = nn.CrossEntropyLoss()
@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
         for input, decision in train_loader:
             optimizer.zero_grad()  # Zero the gradients
-            output = module.forward(input)  # Forward pass
+            output = module(input)  # Forward pass
             loss = criterion(output, decision)  # Compute loss
             loss.backward()  # Backward pass
             optimizer.step()  # Update weights
@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
         with torch.no_grad():
             for input, decision in val_loader:
-                output = module.forward(input)  # Forward pass
+                output = module(input)  # Forward pass
                 _, predicted = torch.max(output, 1)  # Get predicted labels
                 val_accuracy += (predicted == decision).sum().item()  # Compute accuracy
 

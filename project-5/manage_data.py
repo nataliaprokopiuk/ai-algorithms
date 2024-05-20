@@ -90,7 +90,7 @@ def prepare_dataset():
 class BCDataset(Dataset):
 	def __init__(self, dataset, decisions):
 		self.input_data = torch.tensor(dataset, dtype=torch.float32)
-		self.decisions = torch.tensor(decisions, dtype=torch.float32)
+		self.decisions = torch.tensor(decisions, dtype=torch.long)
 
 	def __len__(self):
 		return len(self.input_data)
