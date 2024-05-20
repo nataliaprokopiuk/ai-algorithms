@@ -1,6 +1,7 @@
 import torch
 from activation_func import ActivationFunc as act
 
+
 class Layer:
 	def __init__(self):
 		self.input_data = None
@@ -56,4 +57,5 @@ class DenseLayer(Layer):
 		else:
 			self.weights -= learning_rate * weights_error
 			self.bias -= learning_rate * bias_error
+
 		return input_error

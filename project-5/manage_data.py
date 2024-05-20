@@ -5,9 +5,9 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.model_selection import train_test_split
 
 def game_state_to_data_sample(game_state: dict, bounds, block_size):
-	snake_head = game_state["snake_body"][-1] # coordinates of the snake's head
-	snake_tail = game_state["snake_body"][0:-1] # the rest of the snake's body
-	food = game_state["food"] # current food coordinates
+	snake_head = game_state["snake_body"][-1]  # coordinates of the snake's head
+	snake_tail = game_state["snake_body"][0:-1]  # the rest of the snake's body
+	food = game_state["food"]  # current food coordinates
 
 	# last move - attribute
 	LastMove = game_state["snake_direction"].value
@@ -37,17 +37,20 @@ def game_state_to_data_sample(game_state: dict, bounds, block_size):
 	ObstacleRight = 1 if right_coordinates in snake_tail or snake_head[0] + block_size == bounds[0] else 0
 
 	# return an array of attributes
-	return np.array([FoodUp, FoodDirUp, FoodDown, FoodDirDown, FoodLeft, FoodDirLeft, FoodRight, FoodDirRight, ObstacleUp, ObstacleDown, ObstacleLeft, ObstacleRight, LastMove], dtype=int).reshape(1,13)
+	return np.array(
+		[FoodUp, FoodDirUp, FoodDown, FoodDirDown, FoodLeft, FoodDirLeft, FoodRight, FoodDirRight, ObstacleUp,
+		 ObstacleDown, ObstacleLeft, ObstacleRight, LastMove], dtype=int).reshape(1, 13)
+
 
 def create_dataset(file):
 	# initialize data arrays
-	dataset = np.zeros((1,13), dtype=int)
-	decisions = np.zeros((1,1), dtype=int)
+	dataset = np.zeros((1, 13), dtype=int)
+	decisions = np.zeros((1, 1), dtype=int)
 
 	# load data from file
 	with open(file, 'rb') as f:
 		data_file = pickle.load(f)
-	
+
 	# interpret data
 	states = data_file["data"]
 	bounds = data_file["bounds"]
@@ -58,6 +61,7 @@ def create_dataset(file):
 		decisions = np.append(decisions, [[state[1].value]], axis=0)
 
 	return dataset[1:], decisions[1:]
+
 
 def prepare_dataset():
 	train_split = 0.8
@@ -86,12 +90,12 @@ def prepare_dataset():
 class BCDataset(Dataset):
 	def __init__(self, dataset, decisions):
 		self.input_data = torch.tensor(dataset, dtype=torch.float32)
-		self.decsions = torch.tensor(decisions, dtype=torch.float32)
+		self.decisions = torch.tensor(decisions, dtype=torch.float32)
 
 	def __len__(self):
 		return len(self.input_data)
-	
+
 	def __getitem__(self, index):
 		item_attributes = self.input_data[index]
-		item_decision = self.decsions[index]
+		item_decision = self.decisions[index]
 		return item_attributes, item_decision
