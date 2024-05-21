@@ -7,18 +7,18 @@ from manage_data import prepare_dataset
 
 if __name__ == "__main__":
     # Instantiate the custom module 
-    module = MLP(13, 128, 4)
+    module = MLP(16, 64, 4)
 
     # Define the loss function and optimizer 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(module.parameters(), lr=0.01)
+    optimizer = optim.SGD(module.parameters(), lr=0.1)
 
     # Load datasets
     train_dataset, val_dataset, _ = prepare_dataset()
 
     # Data loaders
-    train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
 
     # Training parameters
     num_epochs = 10
@@ -31,8 +31,10 @@ if __name__ == "__main__":
 
         for input, decision in train_loader:
             optimizer.zero_grad()  # Zero the gradients
-            output = module(input)  # Forward pass
-            loss = criterion(output, decision)  # Compute loss
+            # output = module.forward(input)  # Forward pass
+            output = module(input)
+            # loss = criterion(output, decision)  # Compute loss
+            loss = criterion(output, decision)   # Compute loss
             loss.backward()  # Backward pass
             optimizer.step()  # Update weights
             running_loss += loss.item() * input.size(0)  # Accumulate loss
@@ -45,8 +47,12 @@ if __name__ == "__main__":
 
         with torch.no_grad():
             for input, decision in val_loader:
+                # output = module.forward(input)  # Forward pass
                 output = module(input)  # Forward pass
                 _, predicted = torch.max(output, 1)  # Get predicted labels
+                # print(predicted)
+                # print(decision)
+                # print((predicted == decision).sum().item())
                 val_accuracy += (predicted == decision).sum().item()  # Compute accuracy
 
             val_accuracy /= len(val_dataset)  # Compute average accuracy

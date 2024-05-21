@@ -8,9 +8,11 @@ def game_state_to_data_sample(game_state: dict, bounds, block_size):
 	snake_head = game_state["snake_body"][-1]  # coordinates of the snake's head
 	snake_tail = game_state["snake_body"][0:-1]  # the rest of the snake's body
 	food = game_state["food"]  # current food coordinates
+	last_move = np.zeros(4)
 
 	# last move - attribute
 	LastMove = game_state["snake_direction"].value
+	last_move[LastMove] = 1
 
 	# determine the coordinates of neighbour cells
 	up_coordinates = (snake_head[0], snake_head[1] - block_size)
@@ -37,15 +39,15 @@ def game_state_to_data_sample(game_state: dict, bounds, block_size):
 	ObstacleRight = 1 if right_coordinates in snake_tail or snake_head[0] + block_size == bounds[0] else 0
 
 	# return an array of attributes
-	return np.array(
+	return np.hstack((np.array(
 		[FoodUp, FoodDirUp, FoodDown, FoodDirDown, FoodLeft, FoodDirLeft, FoodRight, FoodDirRight, ObstacleUp,
-		 ObstacleDown, ObstacleLeft, ObstacleRight, LastMove], dtype=int).reshape(1, 13)
+		 ObstacleDown, ObstacleLeft, ObstacleRight], dtype=int), last_move)).reshape(1, 16)
 
 
 def create_dataset(file):
 	# initialize data arrays
-	dataset = np.zeros((1, 13), dtype=int)
-	decisions = np.zeros((1, 1), dtype=int)
+	dataset = np.zeros((1, 16), dtype=int)
+	decisions = np.zeros((1, 4), dtype=int)
 
 	# load data from file
 	with open(file, 'rb') as f:
@@ -57,9 +59,10 @@ def create_dataset(file):
 	block_size = data_file["block_size"]
 	# assign attributes to each state
 	for state in states:
+		decision = np.zeros((1, 4), dtype=int)
 		dataset = np.append(dataset, game_state_to_data_sample(state[0], bounds, block_size), axis=0)
-		decisions = np.append(decisions, [[state[1].value]], axis=0)
-
+		decision[0][[[state[1].value]]] = 1
+		decisions = np.append(decisions, decision, axis=0)
 	return dataset[1:], decisions[1:]
 
 
@@ -67,8 +70,8 @@ def prepare_dataset():
 	train_split = 0.8
 
 	# import datasets with attributes
-	dataset_1, decisions_1 = create_dataset(f"2024-05-18_19-38-16.pickle")
-	dataset_2, decisions_2 = create_dataset(f"2024-05-19_18-54-56.pickle")
+	dataset_1, decisions_1 = create_dataset(f"./2024-05-18_19-38-16.pickle")
+	dataset_2, decisions_2 = create_dataset(f"./2024-05-19_18-54-56.pickle")
 
 	dataset = np.vstack((dataset_1, dataset_2))
 	decisions = np.vstack((decisions_1, decisions_2))
@@ -90,7 +93,7 @@ def prepare_dataset():
 class BCDataset(Dataset):
 	def __init__(self, dataset, decisions):
 		self.input_data = torch.tensor(dataset, dtype=torch.float32)
-		self.decisions = torch.tensor(decisions, dtype=torch.long)
+		self.decisions = torch.flatten(torch.tensor(decisions, dtype=torch.long))
 
 	def __len__(self):
 		return len(self.input_data)
