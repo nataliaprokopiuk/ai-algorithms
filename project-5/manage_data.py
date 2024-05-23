@@ -84,16 +84,20 @@ def prepare_dataset():
 		temp_data, temp_decisions, test_size=0.5, random_state=42)
 
 	# Create datasets
-	train_dataset = BCDataset(train_data, train_decisions)
-	val_dataset = BCDataset(val_data, val_decisions)
-	test_dataset = BCDataset(test_data, test_decisions)
+	train_dataset = BCDataset(train_data, train_decisions.tolist())
+	val_dataset = BCDataset(val_data, val_decisions.tolist())
+	test_dataset = BCDataset(test_data, test_decisions.tolist())
 
 	return train_dataset, val_dataset, test_dataset
 
 class BCDataset(Dataset):
 	def __init__(self, dataset, decisions):
 		self.input_data = torch.tensor(dataset, dtype=torch.float32)
-		self.decisions = torch.flatten(torch.tensor(decisions, dtype=torch.long))
+		# print(decisions)
+		# print(decisions.shape)
+		self.decisions = torch.tensor(decisions, dtype=torch.float32).squeeze()
+		# print(self.decisions)
+		# print(self.decisions.shape)
 
 	def __len__(self):
 		return len(self.input_data)

@@ -30,10 +30,12 @@ if __name__ == "__main__":
         for input, decision in test_loader:
             output = module(input)
             _, predicted = torch.max(output, 1)
-            y_true.extend(decision.numpy())
+            y_true.extend(decision.argmax(dim=1).numpy())
             y_pred.extend(predicted.numpy())
 
     # Calculate accuracy
+    # print(y_true)
+    # print(y_pred)
     accuracy = accuracy_score(y_true, y_pred)
     print("Test Accuracy:", accuracy)
 

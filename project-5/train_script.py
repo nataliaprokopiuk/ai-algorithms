@@ -11,17 +11,17 @@ if __name__ == "__main__":
 
     # Define the loss function and optimizer 
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(module.parameters(), lr=0.1)
+    optimizer = optim.SGD(module.parameters(), lr=0.01, momentum=0.9)
 
     # Load datasets
     train_dataset, val_dataset, _ = prepare_dataset()
 
     # Data loaders
-    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False)
 
     # Training parameters
-    num_epochs = 10
+    num_epochs = 30
     best_val_accuracy = 0.0
 
     # Train the model 
@@ -30,6 +30,10 @@ if __name__ == "__main__":
         running_loss = 0.0
 
         for input, decision in train_loader:
+            # print()
+            # print(input)
+            # print(decision)
+            # print()
             optimizer.zero_grad()  # Zero the gradients
             # output = module.forward(input)  # Forward pass
             output = module(input)
@@ -50,10 +54,10 @@ if __name__ == "__main__":
                 # output = module.forward(input)  # Forward pass
                 output = module(input)  # Forward pass
                 _, predicted = torch.max(output, 1)  # Get predicted labels
-                # print(predicted)
-                # print(decision)
+                print(predicted)
+                # print('decision ' + str(decision))
                 # print((predicted == decision).sum().item())
-                val_accuracy += (predicted == decision).sum().item()  # Compute accuracy
+                val_accuracy += (predicted == decision.argmax(dim=1)).sum().item()  # Compute accuracy
 
             val_accuracy /= len(val_dataset)  # Compute average accuracy
 
