@@ -7,7 +7,7 @@ from manage_data import prepare_dataset
 
 if __name__ == "__main__":
     # Instantiate the custom module 
-    module = MLP(16, 64, 4)
+    module = MLP(16, 128, 4)
 
     # Define the loss function and optimizer 
     criterion = nn.CrossEntropyLoss()
@@ -21,7 +21,7 @@ if __name__ == "__main__":
     val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False)
 
     # Training parameters
-    num_epochs = 30
+    num_epochs = 100
     best_val_accuracy = 0.0
 
     # Train the model 

@@ -10,10 +10,10 @@ if __name__ == "__main__":
     _, _, test_dataset = prepare_dataset()
 
     # Data loader for test dataset
-    test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
 
     # Model initialization
-    module = MLP(input_size=16, hidden_size=64, output_size=4)
+    module = MLP(input_size=16, hidden_size=128, output_size=4)
 
     # Load trained model weights
     module.load_state_dict(torch.load('best_model_weights.pth'))

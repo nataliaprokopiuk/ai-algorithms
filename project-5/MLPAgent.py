@@ -7,7 +7,7 @@ class MLPAgent:
     def __init__(self, block_size, bounds, model_path='best_model_weights.pth'):
         self.block_size = block_size
         self.bounds = bounds
-        self.model = MLP(13, 128, 4)  # 13 input features, 128 hidden units, 4 output classes
+        self.model = MLP(16, 128, 4)  # 16 input features, 64 hidden units, 4 output classes
         self.model.load_state_dict(torch.load(model_path))
         self.model.eval()  # Set the model to evaluation mode
 
