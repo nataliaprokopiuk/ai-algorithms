@@ -40,6 +40,7 @@ def main():
         food.update()
 
         if snake.is_wall_collision() or snake.is_tail_collision():
+            print("collision")
             pygame.display.update()
             pygame.time.delay(300)
             scores.append(snake.length - 3)

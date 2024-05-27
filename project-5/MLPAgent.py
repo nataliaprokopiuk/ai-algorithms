@@ -7,13 +7,15 @@ class MLPAgent:
     def __init__(self, block_size, bounds, model_path='best_model_weights.pth'):
         self.block_size = block_size
         self.bounds = bounds
-        self.model = MLP(16, 128, 4)  # 16 input features, 64 hidden units, 4 output classes
+        self.model = MLP(16, 32, 4)  # 16 input features, 64 hidden units, 4 output classes
         self.model.load_state_dict(torch.load(model_path))
         self.model.eval()  # Set the model to evaluation mode
 
     def act(self, game_state) -> Direction:
         # Process the game state to get the model input
         model_input = game_state_to_data_sample(game_state, self.bounds, self.block_size)
+        print(game_state)
+        print(model_input)
         model_input = torch.tensor(model_input, dtype=torch.float32)
 
         # Predict the next move
@@ -22,16 +24,17 @@ class MLPAgent:
             _, predicted = torch.max(output, 1)
             predicted_direction = predicted.item()
 
-
         # Map the predicted class to the corresponding direction
         direction_map = {
-            0: Direction.LEFT,
+            0: Direction.UP,
             1: Direction.RIGHT,
-            2: Direction.UP,
-            3: Direction.DOWN
+            2: Direction.DOWN,
+            3: Direction.LEFT,
         }
 
         action = direction_map[predicted_direction]
+        print(action)
+        print()
 
         return action
 

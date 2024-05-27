@@ -10,14 +10,12 @@ if __name__ == "__main__":
     _, _, test_dataset = prepare_dataset()
 
     # Data loader for test dataset
-    test_loader = DataLoader(test_dataset, batch_size=128, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
 
     # Model initialization
-    module = MLP(input_size=16, hidden_size=128, output_size=4)
-
+    module = MLP(input_size=16, hidden_size=32, output_size=4)
     # Load trained model weights
     module.load_state_dict(torch.load('best_model_weights.pth'))
-
     # Evaluation mode
     module.eval()
 
@@ -29,6 +27,7 @@ if __name__ == "__main__":
     with torch.no_grad():
         for input, decision in test_loader:
             output = module(input)
+            print(output)
             _, predicted = torch.max(output, 1)
             y_true.extend(decision.argmax(dim=1).numpy())
             y_pred.extend(predicted.numpy())

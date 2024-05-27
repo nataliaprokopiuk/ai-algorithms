@@ -70,6 +70,7 @@ def prepare_dataset():
 	train_split = 0.8
 
 	# import datasets with attributes
+	# dataset, decisions = create_dataset(f"./2024-05-19_18-54-56.pickle")
 	dataset_1, decisions_1 = create_dataset(f"./2024-05-18_19-38-16.pickle")
 	dataset_2, decisions_2 = create_dataset(f"./2024-05-19_18-54-56.pickle")
 
