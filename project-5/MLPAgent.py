@@ -19,9 +19,10 @@ class MLPAgent:
         # Predict the next move
         with torch.no_grad():
             output = self.model(model_input)
+            # testing
+            print(f"output: {output}")
             _, predicted = torch.max(output, 1)
             predicted_direction = predicted.item()
-
 
         # Map the predicted class to the corresponding direction
         direction_map = {
@@ -32,6 +33,8 @@ class MLPAgent:
         }
 
         action = direction_map[predicted_direction]
+        # testing
+        print(f"predicted_direction: {action}")
 
         return action
 
