@@ -35,6 +35,8 @@ if __name__ == "__main__":
     for epoch in range(num_epochs):
         module.train()  # Set model to training mode
         running_loss = 0.0
+        train_accuracy = 0.0
+        train_loss = 0.0
 
         for input, decision in train_loader:
             # print()
@@ -45,25 +47,31 @@ if __name__ == "__main__":
             output = module(input)
             # print(output)
             # print()
-            # loss = criterion(output, decision)  # Compute loss
             loss = criterion(output, decision)   # Compute loss
             loss.backward()  # Backward pass
             optimizer.step()  # Update weights
             running_loss += loss.item() * input.size(0)  # Accumulate loss
-        print(input)
-        print(decision)
-        print(output)
 
-        epoch_loss = running_loss / len(train_dataset)  # Compute average loss
+            _, predicted = torch.max(output, 1)  # Get predicted labels
+            train_accuracy += (predicted == decision.argmax(dim=1)).sum().item()  # Compute accuracy
+
+        train_loss = running_loss / len(train_dataset)  # Compute average loss
+        train_accuracy /= len(train_dataset)  # Compute average accuracy
+
+        print(f"Epoch [{epoch + 1}/{num_epochs}], Training Loss: {train_loss:.4f}, Training Accuracy: {train_accuracy:.4f}")
 
         # Validation phase
         module.eval()  # Set model to evaluation mode
         val_accuracy = 0.0
+        val_loss = 0.0
 
         with torch.no_grad():
             for input, decision in val_loader:
                 # output = module.forward(input)  # Forward pass
                 output = module(input)  # Forward pass
+                loss = criterion(output, decision)  # Compute loss
+                val_loss += loss.item() * input.size(0)  # Accumulate validation loss
+
                 _, predicted = torch.max(output, 1)  # Get predicted labels
                 # print()
                 # print(decision)
@@ -73,15 +81,18 @@ if __name__ == "__main__":
                 # print((predicted == decision).sum().item())
                 val_accuracy += (predicted == decision.argmax(dim=1)).sum().item()  # Compute accuracy
 
+            val_loss /= len(val_dataset)  # Compute average validation loss
             val_accuracy /= len(val_dataset)  # Compute average accuracy
 
-        print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {epoch_loss:.4f}, Validation Accuracy: {val_accuracy:.4f}")
+        print(f"Epoch [{epoch + 1}/{num_epochs}], Validation Loss: {val_loss:.4f}, Validation Accuracy: {val_accuracy:.4f}")
 
         # Save model weights if validation accuracy improves
         if val_accuracy > best_val_accuracy:
             print("Best model updated")
             best_val_accuracy = val_accuracy
             best_model_state = module.state_dict()
+
+        print("")
 
     # Save the best model weights at the end of the training process
     if best_model_state is not None:
