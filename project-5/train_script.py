@@ -4,12 +4,14 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from perceptron import MLP
 from manage_data import prepare_dataset
+import time
+import os
 
 if __name__ == "__main__":
-    # Instantiate the custom module 
+    # Instantiate the custom module
     module = MLP(16, 32, 4)
 
-    # Define the loss function and optimizer 
+    # Define the loss function and optimizer
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(module.parameters(), lr=0.01, momentum=0.6)
 
@@ -21,10 +23,15 @@ if __name__ == "__main__":
     val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False)
 
     # Training parameters
-    num_epochs = 50
+    num_epochs = 10
     best_val_accuracy = 0.0
 
-    # Train the model 
+    best_model_state = None
+    # Create the directory for saving model weights if it doesn't exist
+    os.makedirs('best_model_weights', exist_ok=True)
+
+
+    # Train the model
     for epoch in range(num_epochs):
         module.train()  # Set model to training mode
         running_loss = 0.0
@@ -72,9 +79,15 @@ if __name__ == "__main__":
 
         # Save model weights if validation accuracy improves
         if val_accuracy > best_val_accuracy:
-            print("changed")
-            torch.save(module.state_dict(), 'best_model_weights.pth')
-            print(module.hidden_layers[1].weight)
+            print("Best model updated")
             best_val_accuracy = val_accuracy
+            best_model_state = module.state_dict()
+
+    # Save the best model weights at the end of the training process
+    if best_model_state is not None:
+        current_time = time.strftime('%Y-%m-%d %H-%M-%S')
+        model_path = os.path.join('best_model_weights', f'best_model_weights_{current_time}.pth')
+        torch.save(best_model_state, model_path)
+        print(f"Best model weights saved to {model_path}")
 
     print("Training finished.")
