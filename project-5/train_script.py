@@ -43,7 +43,6 @@ if __name__ == "__main__":
             # print(input)
             # print(decision)
             optimizer.zero_grad()  # Zero the gradients
-            # output = module.forward(input)  # Forward pass
             output = module(input)
             # print(output)
             # print()
@@ -67,7 +66,6 @@ if __name__ == "__main__":
 
         with torch.no_grad():
             for input, decision in val_loader:
-                # output = module.forward(input)  # Forward pass
                 output = module(input)  # Forward pass
                 loss = criterion(output, decision)  # Compute loss
                 val_loss += loss.item() * input.size(0)  # Accumulate validation loss
