@@ -33,6 +33,8 @@ def main():
                       "snake_direction": snake.direction}
 
         direction = agent.act(game_state)
+        # testing
+        print(f"game state: {game_state['snake_direction']}")
         snake.turn(direction)
 
         snake.move()
@@ -46,6 +48,9 @@ def main():
             scores.append(snake.length - 3)
             snake.respawn()
             food.respawn()
+            # testing
+            print(f"COLLISION {i}")
+            print("")
             i += 1
 
         window.fill((0, 0, 0))
