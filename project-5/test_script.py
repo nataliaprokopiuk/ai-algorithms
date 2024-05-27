@@ -1,67 +1,73 @@
 import torch
 import torch.nn as nn
-from sklearn.metrics import accuracy_score, classification_report
-from manage_data import prepare_dataset
 from torch.utils.data import DataLoader
 from perceptron import MLP
+from manage_data import prepare_dataset
 import os
+import pandas as pd
 
-if __name__ == "__main__":
-    # Prepare test dataset
+
+def validate_model(model_path, activation_function, num_hidden_layers):
+    # Load datasets
     _, _, test_dataset = prepare_dataset()
 
-    # Data loader for test dataset
-    test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
+    # Data loader
+    test_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 
-    # Model initialization
-    module = MLP(input_size=16, hidden_size=32, output_size=4)
-
-    # 1
-    # Get the newest model file in the directory
-    # model_dir = 'best_model_weights'
-    # model_files = os.listdir(model_dir)
-    # if not model_files:
-    #     print("No model files found in the directory:", model_dir)
-    #     exit()
-    # newest_model_file = max(model_files, key=lambda f: os.path.getmtime(os.path.join(model_dir, f)))
-    # # Load trained model weights
-    # module.load_state_dict(torch.load(os.path.join('best_model_weights', newest_model_file)))
-
-    # 2
-    # Enter the file name
-    model_file_name = "best_model_weights_2024-05-27 21-08-21.pth"
-    # Check if the specified file exists
-    model_dir = 'best_model_weights'
-    model_path = os.path.join(model_dir, model_file_name)
-    if not os.path.isfile(model_path):
-        print(f"File '{model_file_name}' does not exist in the directory:", model_dir)
-        exit()
-
-    # Load trained model weights
-    module.load_state_dict(torch.load(model_path))
-
-    # Evaluation mode
-    module.eval()
+    # Load the model
+    model = MLP(16, 32, 4, activation_function=activation_function, num_hidden_layers=num_hidden_layers)
+    model.load_state_dict(torch.load(model_path))
+    model.eval()
 
     # Lists to store true labels and predicted labels
     y_true = []
     y_pred = []
 
+    # Define the loss function
+    criterion = nn.CrossEntropyLoss()
+
+    # Validation phase
+    test_loss = 0.0
+
     # Iterate over test dataset and make predictions
     with torch.no_grad():
         for input, decision in test_loader:
-            output = module(input)
-            print(output)
+            output = model(input)
+            # print(output)
+
+            loss = criterion(output, decision)
+            test_loss += loss.item() * input.size(0)
             _, predicted = torch.max(output, 1)
             y_true.extend(decision.argmax(dim=1).numpy())
             y_pred.extend(predicted.numpy())
 
     # Calculate accuracy
-    # print(y_true)
-    # print(y_pred)
-    accuracy = accuracy_score(y_true, y_pred)
-    print("Test Accuracy:", accuracy)
+    correct = sum(t == p for t, p in zip(y_true, y_pred))
+    test_accuracy = correct / len(y_true)
+    test_loss /= len(test_dataset)  # Average test loss
 
-    # Generate classification report
-    report = classification_report(y_true, y_pred)
-    print("\nClassification Report:\n", report)
+    print(f"Model: {model_path}, Test Loss: {test_loss:.4f}, Test Accuracy: {test_accuracy:.4f}")
+
+
+if __name__ == "__main__":
+    # Define activation functions
+    activation_functions = {
+        "identity": nn.Identity(),
+        "relu": nn.ReLU(),
+        "leaky_relu": nn.LeakyReLU(negative_slope=0.01),
+        "sigmoid": nn.Sigmoid()
+    }
+
+    # Directory containing model weights
+    model_dir = 'best_model_weights'
+    model_files = os.listdir(model_dir)
+
+    for model_file in model_files:
+        if model_file.endswith('.pth'):
+            model_path = os.path.join(model_dir, model_file)
+            # Extract activation function and number of layers from the file name
+            parts = model_file.split('_')
+            activation_function_name = parts[0]
+            num_hidden_layers = int(parts[1])
+            activation_function = activation_functions.get(activation_function_name, nn.Identity())
+            validate_model(model_path, activation_function, num_hidden_layers)

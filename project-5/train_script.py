@@ -28,7 +28,7 @@ def train_and_save_model(activation_function, num_hidden_layers):
     val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False)
 
     # Training parameters
-    num_epochs = 5
+    num_epochs = 50
     best_val_accuracy = 0.0
 
     best_model_state = None
