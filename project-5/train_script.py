@@ -7,7 +7,7 @@ from manage_data import prepare_dataset
 
 if __name__ == "__main__":
     # Instantiate the custom module 
-    module = MLP(16, 32, 4)
+    module = MLP(16, 8, 4)
 
     # Define the loss function and optimizer 
     criterion = nn.CrossEntropyLoss()

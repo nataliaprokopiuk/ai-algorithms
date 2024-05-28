@@ -13,7 +13,7 @@ if __name__ == "__main__":
     test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
 
     # Model initialization
-    module = MLP(input_size=16, hidden_size=32, output_size=4)
+    module = MLP(input_size=16, hidden_size=8, output_size=4)
     # Load trained model weights
     module.load_state_dict(torch.load('best_model_weights.pth'))
     # Evaluation mode
