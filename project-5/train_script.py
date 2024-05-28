@@ -28,7 +28,7 @@ def train_and_save_model(activation_function, num_hidden_layers):
     val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False)
 
     # Training parameters
-    num_epochs = 50
+    num_epochs = 20
     best_val_accuracy = 0.0
 
     best_model_state = None
@@ -108,14 +108,15 @@ def train_and_save_model(activation_function, num_hidden_layers):
 if __name__ == "__main__":
     # activation function
     activation_functions = {
-        "identity": nn.Identity(),
+        # "identity": nn.Identity(),
         "relu": nn.ReLU(),
-        "leaky_relu": nn.LeakyReLU(negative_slope=0.01),
-        "sigmoid": nn.Sigmoid()
+        # "leaky_relu": nn.LeakyReLU(negative_slope=0.01),
+        # "sigmoid": nn.Sigmoid()
     }
 
     # num of hidden layers: {1, 2, 5} {30}
-    num_hidden_layers = [1, 2, 5]
+    # num_hidden_layers = [1, 2, 5]
+    num_hidden_layers = [30]
 
     all_train_results = []
     all_val_results = []
@@ -129,8 +130,12 @@ if __name__ == "__main__":
             print(f"{activation_function_name} and {num_layers}")
 
             # Combine all results into a single DataFrame if needed
-            all_train_results_df = pd.concat(all_train_results, ignore_index=True)
-            all_val_results_df = pd.concat(all_val_results, ignore_index=True)
+            all_train_results_df = pd.concat(all_train_results, axis=0)
+            all_val_results_df = pd.concat(all_val_results, axis=0)
+
+            # Ensure columns are in the correct order
+            all_train_results_df = all_train_results_df[['Epoch', 'Loss', 'Accuracy']]
+            all_val_results_df = all_val_results_df[['Epoch', 'Loss', 'Accuracy']]
 
             # Save combined results to CSV files if needed
             all_train_results_df.to_csv(f't_{activation_function}_{num_layers}.csv', index=False)
