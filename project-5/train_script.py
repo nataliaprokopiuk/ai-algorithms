@@ -114,8 +114,8 @@ if __name__ == "__main__":
         "sigmoid": nn.Sigmoid()
     }
 
-    # num of hidden layers: {1, 2, 5, 30}
-    num_hidden_layers = [1, 2, 5, 30]
+    # num of hidden layers: {1, 2, 5} {30}
+    num_hidden_layers = [1, 2, 5]
 
     all_train_results = []
     all_val_results = []
@@ -128,10 +128,10 @@ if __name__ == "__main__":
 
             print(f"{activation_function_name} and {num_layers}")
 
-    # Combine all results into a single DataFrame if needed
-    all_train_results_df = pd.concat(all_train_results, ignore_index=True)
-    all_val_results_df = pd.concat(all_val_results, ignore_index=True)
+            # Combine all results into a single DataFrame if needed
+            all_train_results_df = pd.concat(all_train_results, ignore_index=True)
+            all_val_results_df = pd.concat(all_val_results, ignore_index=True)
 
-    # Save combined results to CSV files if needed
-    all_train_results_df.to_csv('all_train_results.csv', index=False)
-    all_val_results_df.to_csv('all_val_results.csv', index=False)
+            # Save combined results to CSV files if needed
+            all_train_results_df.to_csv(f't_{activation_function}_{num_layers}.csv', index=False)
+            all_val_results_df.to_csv(f'r_{activation_function}_{num_layers}.csv', index=False)
