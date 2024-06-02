@@ -1,3 +1,8 @@
+# Następnie dla 1 warstwy ukrytej oraz funkcji aktywacji ReLU proszę zbadać wpływ liczby
+# neuronów w warstwie ukrytej na wyniki. Czy pojawiło się niedouczenie lub przeuczenie?
+# Dlaczego? Jak temu zaradzić? Proszę zastosować środki zapobiegawcze przeuczeniu, takie
+# jak odrzucanie oraz regularyzacja L2. Jak wpłynęły one na wyniki?
+
 import torch
 import torch.nn as nn
 import torch.optim as optim

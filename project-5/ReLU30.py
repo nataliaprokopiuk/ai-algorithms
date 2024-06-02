@@ -1,14 +1,9 @@
-# . Dla liczby warstw ukrytych 30 i ReLU proszę
-# dla macierzy wag każdej warstwy zaraportować średnią normę (ang. matrix norm)
-# gradientów w czasie pierwszej epoki trenowania
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from perceptron import MLP
 from manage_data import prepare_dataset
-
 
 def train_model(model, train_loader, criterion, optimizer):
     model.train()
@@ -18,39 +13,63 @@ def train_model(model, train_loader, criterion, optimizer):
         optimizer.zero_grad()
         output = model(input)
         loss = criterion(output, decision)
-        loss.backward()  # Wsteczny przebieg
-        optimizer.step()  # Aktualizuj wagi
-        running_loss += loss.item() * input.size(0)  # Skumuluj stratę
+        loss.backward()  # Backward pass
+        optimizer.step()  # Update weights
+        running_loss += loss.item() * input.size(0)  # Accumulate loss
 
-    return running_loss / len(train_loader.dataset)  # Zwróć średnią stratę
-
+    return running_loss / len(train_loader.dataset)  # Return average loss
 
 if __name__ == "__main__":
-    # Zdefiniuj funkcję aktywacji i liczbę warstw ukrytych
-    activation_function = nn.ReLU()
+    # Define the number of hidden layers and activation function
     num_hidden_layers = 30
+    activation_function = nn.ReLU()
 
-    # Przygotuj zbiór danych treningowych
-    train_dataset, _, _ = prepare_dataset()
+    input_size = 16  # Example input size, adjust as needed
+    hidden_size = 128  # Example hidden layer size, adjust as needed
+    output_size = 4  # Example output size, adjust as needed
+
+    # Prepare the dataset
+    train_dataset, validation_dataset, test_dataset = prepare_dataset()
+
+    # Data loaders
     train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
+    val_loader = DataLoader(validation_dataset, batch_size=4, shuffle=False)
 
-    # Inicjalizuj model
-    model = MLP(16, 32, 4, activation_function=activation_function, num_hidden_layers=num_hidden_layers)
+    # Initialize the model with the correct number of hidden layers
+    model = MLP(input_size, hidden_size, output_size,
+                activation_function=activation_function, num_hidden_layers=num_hidden_layers)
 
-    # Definiuj funkcję straty i optymalizator
+    # Define loss function and optimizer
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(model.parameters(), lr=0.01, momentum=0.6)
 
-    # Trenuj model przez jedną epokę, aby uzyskać gradienty
+    # Train the model for one epoch to get gradients
     train_loss = train_model(model, train_loader, criterion, optimizer)
 
-    # Oblicz normy gradientów dla każdej warstwy w macierzy wag
-    weight_gradients = []
-    for param in model.parameters():
+    # Calculate gradient norms for each weight matrix
+    gradient_norms = []
+    layer_count = 0
+    weight_norms = []
+    bias_norms = []
+
+    for name, param in model.named_parameters():
         if param.grad is not None:
-            weight_gradients.append(param.grad.norm().item())
+            if 'weight' in name:
+                weight_norms.append(param.grad.norm().item())
+            elif 'bias' in name:
+                bias_norms.append(param.grad.norm().item())
 
-    # Oblicz średnią normę gradientów
-    average_gradient_norm = sum(weight_gradients) / len(weight_gradients)
+    # Average the gradient norms for each layer
+    for i in range(num_hidden_layers + 1):
+        weight_norm = weight_norms[i]
+        bias_norm = bias_norms[i]
+        avg_norm = (weight_norm + bias_norm) / 2
+        gradient_norms.append(avg_norm)
 
-    print(f"Średnia norma gradientów w czasie pierwszej epoki trenowania: {average_gradient_norm}")
+    # Print the gradient norms for each layer
+    for i, norm in enumerate(gradient_norms):
+        print(f"Average gradient norm for layer {i+1}: {norm}")
+
+    # Calculate and print the overall average gradient norm
+    average_gradient_norm = sum(gradient_norms) / len(gradient_norms)
+    print(f"Overall average gradient norm during the first epoch: {average_gradient_norm}")
