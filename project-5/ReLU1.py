@@ -1,5 +1,7 @@
 # Następnie dla 1 warstwy ukrytej oraz funkcji aktywacji ReLU proszę zbadać wpływ liczby
-# neuronów w warstwie ukrytej na wyniki.
+# neuronów w warstwie ukrytej na wyniki. Czy pojawiło się niedouczenie lub przeuczenie?
+# Dlaczego? Jak temu zaradzić? Proszę zastosować środki zapobiegawcze przeuczeniu, takie
+# jak odrzucanie oraz regularyzacja L2. Jak wpłynęły one na wyniki?
 
 import torch
 import torch.nn as nn
@@ -55,19 +57,24 @@ def train_model_and_get_results(num_hidden_neurons):
 
         # Validation phase
         module.eval()  # Set model to evaluation mode
+        val_loss = 0.0
         val_accuracy = 0.0
 
         with torch.no_grad():
             for input, decision in val_loader:
                 output = module(input)  # Forward pass
+                loss = criterion(output, decision)  # Compute loss
+                val_loss += loss.item() * input.size(0)  # Accumulate validation loss
+
                 _, predicted = torch.max(output, 1)  # Get predicted labels
                 val_accuracy += (predicted == decision.argmax(dim=1)).sum().item()  # Compute accuracy
 
-            val_accuracy /= len(val_dataset)  # Compute average accuracy
+            val_loss /= len(val_dataset)  # Compute average validation loss
+            val_accuracy /= len(val_dataset)  # Compute average validation accuracy
 
         # Append results for this epoch
         train_results.append({'Epoch': epoch + 1, 'Loss': train_loss, 'Accuracy': train_accuracy})
-        val_results.append({'Epoch': epoch + 1, 'Accuracy': val_accuracy})
+        val_results.append({'Epoch': epoch + 1, 'Loss': val_loss, 'Accuracy': val_accuracy})
 
     return pd.DataFrame(train_results), pd.DataFrame(val_results)
 
