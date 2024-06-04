@@ -4,10 +4,10 @@ from manage_data import game_state_to_data_sample
 from snake import Direction
 
 class MLPAgent:
-    def __init__(self, block_size, bounds, model_path='best_model_weights.pth'):
+    def __init__(self, block_size, bounds, model_path='best_model_weights\LeakyReLU(negative_slope=0.01)_2_2024-06-04 08-01-16_bms.pth'):
         self.block_size = block_size
         self.bounds = bounds
-        self.model = MLP(16, 32, 4)  # 16 input features, 64 hidden units, 4 output classes
+        self.model = MLP(16, 100, 4, activation_function="leaky_relu", num_hidden_layers=2)  # 16 input features, 64 hidden units, 4 output classes
         self.model.load_state_dict(torch.load(model_path))
         self.model.eval()  # Set the model to evaluation mode
 

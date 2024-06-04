@@ -9,7 +9,13 @@ class MLP(nn.Module):
 
         # input layer
         self.input_layer = nn.Linear(input_size, hidden_size)
-        self.activation_function = activation_function
+        activation_functions = {
+        "identity": nn.Identity(),
+        "relu": nn.ReLU(),
+        "leaky_relu": nn.LeakyReLU(negative_slope=0.01),
+        "sigmoid": nn.Sigmoid()
+        }
+        self.activation_function = activation_functions[activation_function]
 
         # hidden layers with chosen activation function
         self.hidden_layers = nn.ModuleList([nn.Linear(hidden_size, hidden_size) for _ in range(self.num_hidden_layers)])

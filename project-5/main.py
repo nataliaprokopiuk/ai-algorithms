@@ -22,7 +22,7 @@ def main():
     pygame.time.delay(1000)
     # while run:
     while i < 100 and run:
-        pygame.time.delay(40)  # Adjust game speed, decrease to test your agent and model quickly
+        # pygame.time.delay(40)  # Adjust game speed, decrease to test your agent and model quickly
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
